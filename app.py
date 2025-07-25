@@ -11,7 +11,7 @@ app = Flask(__name__)
 # --- Google Sheets Setup ---
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 GOOGLE_CREDENTIALS = os.getenv('GOOGLE_CREDENTIALS')
-SPREADSHEET_ID = os.getenv('1BCEnSKZVoDX8AoyWLLiNErcv4k3hVAj767SZ77eypXE')
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 
 info = json.loads(GOOGLE_CREDENTIALS)
 creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
@@ -25,7 +25,7 @@ def log_to_sheets(phone_number, answer):
         'values': [[phone_number, answer, timestamp]]
     }
     sheets_service.spreadsheets().values().append(
-        spreadsheetId=1BCEnSKZVoDX8AoyWLLiNErcv4k3hVAj767SZ77eypXE,
+        spreadsheetId=SPREADSHEET_ID,
         range='Sheet1!A1',
         valueInputOption='RAW',
         insertDataOption='INSERT_ROWS',
