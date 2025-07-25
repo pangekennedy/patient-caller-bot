@@ -13,8 +13,7 @@ def voice():
     response.redirect('/voice')  # Repeats the question if no input
     return str(response)
 
-from flask import request
-
+# Process patient response (without the DB)
 @app.route("/gather", methods=['GET', 'POST'])
 def gather():
     digit = request.values.get('Digits')

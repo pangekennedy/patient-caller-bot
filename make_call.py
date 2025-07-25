@@ -1,7 +1,12 @@
 from twilio.rest import Client
+import os
+from dotenv import load_dotenv
 
-account_sid = 'ACb518174d372a2b73829123cc13158ffd'
-auth_token = 'fb5faf74397e3d20a85957a15081bb3d'
+load_dotenv()
+
+account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+
 client = Client(account_sid, auth_token)
 
 call = client.calls.create(
