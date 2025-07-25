@@ -1,101 +1,63 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 from twilio.twiml.voice_response import VoiceResponse, Gather
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from datetime import datetime
+import os
+import json
 
 app = Flask(__name__)
 
-# Main entry point for the voice call
-@app.route("/voice", methods=['GET', 'POST'])
-def voice():
-    response = VoiceResponse()
-    gather = Gather(num_digits=1, action='/gather', method="POST")
-    gather.say("Hi, this is a representative calling on behalf of Mr Kennedy. Are you experiencing any pain today? Press 1 for yes. Press 2 for no.")
-    response.append(gather)
-    response.redirect('/voice')  # Repeats the question if no input
-    return str(response)
-
-# Process patient response (without the DB)
-@app.route("/gather", methods=['GET', 'POST'])
-def gather():
-    digit = request.values.get('Digits')
-    caller = request.values.get('From')
-    response = VoiceResponse()
-
-    if digit == '1':
-        response.say("Thank you. We'll notify Mr Kennedy.")
-        log_response("Yes", caller)
-    elif digit == '2':
-        response.say("Great. Take care and have a nice weekend.")
-        log_response("No", caller)
-    else:
-        response.say("Sorry, I didn’t understand that.")
-        response.redirect('/voice')
-
-    return str(response)
-
-
-# Process patient response (without the DB)
-# @app.route("/gather", methods=['GET', 'POST'])
-# def gather():
-#     digit = request.values.get('Digits')
-#     response = VoiceResponse()
-
-#     if digit == '1':
-#         response.say("Thank you. We’ll notify your Mr Kennedy.")
-#         log_response("Yes")
-#     elif digit == '2':
-#         response.say("Great. Take care and have a nice day.")
-#         log_response("No")
-#     else:
-#         response.say("Sorry, I didn’t understand that.")
-#         response.redirect('/voice')
-    
-#     return str(response)
-
-# # Simulate response logging (replace with DB later)
-# def log_response(answer):
-#     with open("responses.txt", "a") as f:
-#         f.write(f"Patient response: {answer}\n")
-
-import datetime
-import os
-import json
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-
-# Load Google Sheets credentials (use a Render secret or env var in production)
-# SERVICE_ACCOUNT_FILE = 'your-service-account-file.json'
+# --- Google Sheets Setup ---
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SPREADSHEET_ID = 'Tiwilio Patient Responses'
-SHEET_NAME = 'Sheet1'
+GOOGLE_CREDENTIALS = os.getenv('GOOGLE_CREDENTIALS')
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 
-# credentials = service_account.Credentials.from_service_account_file(
-#     SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-service = build('sheets', 'v4', credentials=credentials)
+info = json.loads(GOOGLE_CREDENTIALS)
+creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+sheets_service = build('sheets', 'v4', credentials=creds)
 
-import json
-from google.oauth2 import service_account
 
-google_credentials = os.environ.get('google_credentials')
-
-info = json.loads(google_credentials)
-credentials = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
-
-def log_response(response, phone_number):
-    sheet = service.spreadsheets()
-    values = [[
-        datetime.datetime.now().isoformat(),
-        phone_number,
-        response
-    ]]
-    body = {'values': values}
-    sheet.values().append(
-        spreadsheetId=SPREADSHEET_ID,
-        range=f'{SHEET_NAME}!A:C',
-        valueInputOption='USER_ENTERED',
+# --- Log to Google Sheets ---
+def log_to_sheets(phone_number, answer):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    body = {
+        'values': [[phone_number, answer, timestamp]]
+    }
+    sheets_service.spreadsheets().values().append(
+        spreadsheetId=1BCEnSKZVoDX8AoyWLLiNErcv4k3hVAj767SZ77eypXE,
+        range='Sheet1!A1',
+        valueInputOption='RAW',
+        insertDataOption='INSERT_ROWS',
         body=body
     ).execute()
+    print(f"✅ Logged to sheet: {phone_number}, {answer}, {timestamp}")
 
 
-if __name__ == "__main__":
-    import os
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+# --- Twilio Voice Entry Point ---
+@app.route("/voice", methods=['POST'])
+def voice():
+    response = VoiceResponse()
+    gather = Gather(input='speech', timeout=5, num_digits=1, action='/gather')
+    gather.say("Hi, this is an AI agent calling on behlaf of Mr Kennedy, are you in pain from the recenlt operation?")
+    response.append(gather)
+    response.redirect('/voice')
+    return Response(str(response), mimetype='application/xml')
+
+
+# --- Twilio Speech Capture ---
+@app.route("/gather", methods=['POST'])
+def gather():
+    speech_result = request.form.get('SpeechResult', '(no speech)')
+    caller = request.form.get('From', '(unknown)')
+    print(f"📞 Call from {caller} — heard: {speech_result}")
+    log_to_sheets(caller, speech_result)
+
+    response = VoiceResponse()
+    response.say("Thank you. Your response has been recorded and reported to Mr Kennedy. Have a nice weekend!!!!")
+    response.hangup()
+    return Response(str(response), mimetype='application/xml')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
