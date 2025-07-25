@@ -39,7 +39,7 @@ def log_to_sheets(phone_number, answer):
 def voice():
     response = VoiceResponse()
     gather = Gather(input='speech', timeout=5, num_digits=1, action='/gather')
-    gather.say("Hi, this is an AI agent calling on behlaf of Mr Kennedy, are you in pain from the recenlt operation?")
+    gather.say("Hi, this is an AI agent calling on behalf of Mr Kennedy, are you in pain from your recent operation?")
     response.append(gather)
     response.redirect('/voice')
     return Response(str(response), mimetype='application/xml')

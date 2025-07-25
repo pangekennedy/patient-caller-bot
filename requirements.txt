@@ -1,11 +1,5 @@
-flask
-twilio
-google-api-python-client
-google-auth
-google-auth-httplib2
 google-auth-oauthlibpython-dotenv==1.1.1
 twilio==9.7.0
-
 Flask==3.0.3
 gunicorn==22.0.0
 twilio==8.10.0
