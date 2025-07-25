@@ -2,12 +2,11 @@ import os
 from dotenv import load_dotenv
 from twilio.rest import Client
 
-# Load local .env variables (for Twilio keys)
 load_dotenv()
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")  # Your Twilio phone number
+TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
 
 if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER]):
     raise Exception("Missing one or more Twilio environment variables.")
@@ -17,14 +16,44 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 def make_call(to_number):
     call = client.calls.create(
         to=to_number,
-        from_=+61490081545,
-        url="https://patient-caller-bot-active.onrender.com/voice"  # Replace with your actual deployed URL
+        from_=TWILIO_FROM_NUMBER,
+        url="https://patient-caller-bot-active.onrender.com/voice"  # Replace with your actual URL
     )
     print(f"Call initiated: SID {call.sid}")
 
 if __name__ == "__main__":
-    patient_number = input("+61490081545")
+    # Hardcoded number here (must be in E.164 format, e.g. +61412345678)
+    patient_number = "+61490081545"
     make_call(patient_number)
+
+
+# import os
+# from dotenv import load_dotenv
+# from twilio.rest import Client
+
+# # Load local .env variables (for Twilio keys)
+# load_dotenv()
+
+# TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+# TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+# TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")  # Your Twilio phone number
+
+# if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER]):
+#     raise Exception("Missing one or more Twilio environment variables.")
+
+# client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+# def make_call(to_number):
+#     call = client.calls.create(
+#         to=to_number,
+#         from_=TWILIO_FROM_NUMBER,
+#         url="https://your-app.onrender.com/voice"  # Replace with your actual deployed URL
+#     )
+#     print(f"Call initiated: SID {call.sid}")
+
+# if __name__ == "__main__":
+#     patient_number = input("+61490081545")
+#     make_call(patient_number)
 
 
 # from twilio.rest import Client
