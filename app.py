@@ -11,7 +11,7 @@ app = Flask(__name__)
 # --- Google Sheets Setup ---
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 GOOGLE_CREDENTIALS = os.getenv('GOOGLE_CREDENTIALS')
-SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
+SPREADSHEET_ID = os.getenv('1BCEnSKZVoDX8AoyWLLiNErcv4k3hVAj767SZ77eypXE')
 
 info = json.loads(GOOGLE_CREDENTIALS)
 creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
