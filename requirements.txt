@@ -1,10 +1,10 @@
-google-auth-oauthlibpython-dotenv==1.1.1
+google-auth-oauthlib
 twilio==9.7.0
 Flask==3.0.3
 gunicorn==22.0.0
-twilio==8.10.0
 python-dotenv==1.0.1
 google-api-python-client==2.129.0
 google-auth==2.29.0
-google-auth-oauthlib==1.2.0
 google-auth-httplib2==0.2.0
+google-auth-oauthlib
+python-dotenv
